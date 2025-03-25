@@ -2,17 +2,20 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
-import { Container, Title, Text, Button, Group, Box, Stack, CopyButton } from "@mantine/core"
+import { useState, useRef, useEffect } from "react"
+import { Container, Title, Text, Button, Group, Box, Stack, CopyButton, Textarea } from "@mantine/core"
 import Link from "next/link"
 
 export default function DiscordTextGenerator() {
-  const [text, setText] = useState<string>("Welcome to Rebane's Discord Colored Text Generator!")
+  const [text, setText] = useState<string>('Welcome to <span class="ansi-33">Rebane</span>\'s <span class="ansi-45"><span class="ansi-37">Discord</span></span> <span class="ansi-31">C</span><span class="ansi-32">o</span><span class="ansi-33">l</span><span class="ansi-34">o</span><span class="ansi-35">r</span><span class="ansi-36">e</span><span class="ansi-37">d</span> Text Generator!')
   const [selectedText, setSelectedText] = useState<string>("")
   const [selectionStart, setSelectionStart] = useState<number>(0)
   const [selectionEnd, setSelectionEnd] = useState<number>(0)
+
+
   const textareaRef = useRef<HTMLDivElement>(null)
-  
+  const [copied, setCopied] = useState(false);
+
   const [tooltipOpened, setTooltipOpened] = useState(false)
   const [tooltipText, setTooltipText] = useState("")
   const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 })
@@ -40,7 +43,6 @@ export default function DiscordTextGenerator() {
     { code: "47", color: "#fdf6e3", tooltip: "Cream White" },
   ]
 
-
   const handleTextSelection = () => {
     if (textareaRef.current) {
       const selection = window.getSelection()
@@ -51,53 +53,60 @@ export default function DiscordTextGenerator() {
         const range = selection.getRangeAt(0)
         setSelectionStart(range.startOffset)
         setSelectionEnd(range.endOffset)
+        // console.log(range)
       }
+      console.log(selection?.toString())
     }
   }
-
+  
   const applyStyle = (styleCode: string) => {
-    if (!textareaRef.current || !selectedText) return
+    // if (!textareaRef.current || !selectedText) return
+    // const selection = window.getSelection()
+    // if (!selection || selection.rangeCount === 0) return
 
-    const selection = window.getSelection()
-    if (!selection || selection.rangeCount === 0) return
+    // const range = selection.getRangeAt(0)
 
-    const range = selection.getRangeAt(0)
+    // if (styleCode === "0") {
+    //   // Reset all formatting
+    //   textareaRef.current.innerHTML = 'Welcome to <span class="ansi-33">Rebane</span>\'s <span class="ansi-45"><span class="ansi-37">Discord</span></span> <span class="ansi-31">C</span><span class="ansi-32">o</span><span class="ansi-33">l</span><span class="ansi-34">o</span><span class="ansi-35">r</span><span class="ansi-36">e</span><span class="ansi-37">d</span> Text Generator!'
+    //   return
+    // }
 
-    if (styleCode === "0") {
-      // Reset all formatting
-      textareaRef.current.innerHTML = textareaRef.current.innerText
-      return
-    }
+    // // Create a span with the appropriate class
+    // const span = document.createElement("span")
+    // span.className = `ansi-${styleCode}`
+    // span.textContent = selectedText
 
-    // Create a span with the appropriate class
-    const span = document.createElement("span")
-    span.className = `ansi-${styleCode}`
-    span.textContent = selectedText
+    // // Replace the selected text with the styled span
+    // range.deleteContents()
+    // range.insertNode(span)
 
-    // Replace the selected text with the styled span
-    range.deleteContents()
-    range.insertNode(span)
-
-    // Keep the selection on the newly created span
-    range.selectNodeContents(span)
-    selection.removeAllRanges()
-    selection.addRange(range)
+    // // Keep the selection on the newly created span
+    // range.selectNodeContents(span)
+    // selection.removeAllRanges()
+    // selection.addRange(range)
   }
 
+  // Copy related
+  const handleCopy = () => {
+    const text = copyFormattedText();
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000); // Reset copied state after 2s
+      })
+      .catch(err => console.error("Clipboard copy failed:", err));
+  };
   const copyFormattedText = () => {
-    if (!textareaRef.current) return
-
+    if (!textareaRef.current) return ""
     // Convert the HTML with spans to ANSI escape codes
     const nodes = textareaRef.current.childNodes
     const ansiText = nodesToANSI(nodes, [{ fg: "0", bg: "0", st: "0" }])
-
     // Format for Discord
     const discordText = "```ansi\n" + ansiText + "\n```"
-
-    // Copy to clipboard
-    navigator.clipboard.writeText(discordText)
+    console.log(ansiText)
+    return discordText
   }
-
   // Function to convert DOM nodes to ANSI escape sequences
   const nodesToANSI = (
     nodes: NodeListOf<ChildNode> | Array<ChildNode>,
@@ -161,7 +170,6 @@ export default function DiscordTextGenerator() {
     return result
   }
 
-
   // To set tooltip
   const showTooltip = (text: string, event: React.MouseEvent) => {
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
@@ -188,7 +196,7 @@ export default function DiscordTextGenerator() {
           Text Generator
         </Title>
 
-        <Stack style={{ gap: "16px",maxWidth: 600  }} align="center">
+        <Stack style={{ gap: "16px", maxWidth: 600 }} align="center">
           <Title order={2} size="h3" style={{ textAlign: "center" }}>
             About
           </Title>
@@ -304,7 +312,7 @@ export default function DiscordTextGenerator() {
             ref={textareaRef}
             contentEditable
             onMouseUp={handleTextSelection}
-            onKeyUp={handleTextSelection}
+            content="djn"
             style={{
               width: "100%",
               height: 200,
@@ -322,28 +330,19 @@ export default function DiscordTextGenerator() {
               resize: "both",
             }}
             dangerouslySetInnerHTML={{
-              __html:
-                'Welcome to <span class="ansi-33">Rebane</span>\'s <span class="ansi-45"><span class="ansi-37">Discord</span></span> <span class="ansi-31">C</span><span class="ansi-32">o</span><span class="ansi-33">l</span><span class="ansi-34">o</span><span class="ansi-35">r</span><span class="ansi-36">e</span><span class="ansi-37">d</span> Text Generator!',
+              __html:text,
             }}
           />
-
-          <CopyButton value="" timeout={2000}>
-            {({ copied, copy }) => (
-              <Button
-                color={copied ? "teal" : "gray"}
-                onClick={() => {
-                  copyFormattedText()
-                  copy()
-                }}
-                style={{
-                  backgroundColor: copied ? "#3BA55D" : "#4f545c",
-                  "&:hover": { backgroundColor: copied ? "#3BA55D" : "#5d6269" },
-                }}
-              >
-                {copied ? "Copied!" : "Copy text as Discord formatted"}
-              </Button>
-            )}
-          </CopyButton>
+          <Button
+            color={copied ? "teal" : "gray"}
+            onClick={handleCopy}
+            style={{
+              backgroundColor: copied ? "#3BA55D" : "#4f545c",
+              "&:hover": { backgroundColor: copied ? "#3BA55D" : "#5d6269" },
+            }}
+          >
+            {copied ? "Copied!" : "Copy text as Discord formatted"}
+          </Button>
 
           <Text size="xs" color="dimmed" mt="md">
             This is an unofficial tool, it is not made or endorsed by Discord.
